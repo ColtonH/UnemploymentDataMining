@@ -1,0 +1,72 @@
+{% extends "index.html" %}
+{% load crispy_forms_tags %}
+{% block content %}
+
+    <div class="text-center col-md-6 col-md-offset-3 well" style="margin-top:20px; padding-top:20px;">
+        Select an State from the United States.
+        {% crispy form %}
+    </div>
+    <div id="graph_div" style="margin-top:50px;"></div>
+    <!-- {{data}} -->
+{% endblock %}
+
+{% block js_extra %}
+<script src="http://code.highcharts.com/highcharts.js"></script>
+<script src="http://code.highcharts.com/modules/exporting.js"></script>
+
+<script type="text/javascript">
+$(function () {
+    $('#graph_div').highcharts({
+        chart: {
+            type: 'spline'
+        },
+        title: {
+            text: 
+            {% if not state %}'No state selected'
+            {% else %}
+            '{{state.name}}'
+            {% endif %}
+        },
+        subtitle: {
+            text: 
+            {% if not state %}'No state selected'
+            {% else %}
+            'Unemployment in {{state.name}} monthly (http://www.bls.gov/)'
+            {% endif %}
+        },
+        xAxis: {
+            type: 'datetime',
+            dateTimeLabelFormats: { // don't display the dummy year
+                month:"%B %Y"
+            },
+            title: {
+                text: 'Date'
+            }
+        },
+        yAxis: {
+            title: {
+                text: 'Snow depth (m)'
+            },
+            min: 0
+        },
+        tooltip: {
+            headerFormat: '<b>{series.name}</b><br>',
+            pointFormat: '{point.x:%B %Y}: {point.y:.2f} %'
+        },
+        {% if data %}
+        series: [{
+            name: 'Monthly unemployment of {{state.name}} (http://www.bls.gov/)',
+            // Define the data points. All series have a dummy year
+            // of 1970/71 in order to be compared on the same x axis. Note
+            // that in JavaScript, months start at 0 for January, 1 for February etc.
+            data: [
+            {% for element in data %}
+                {% if not forloop.first %},{% endif %}[Date.UTC({{element.year}},{{element.month}},1),{{element.value}}]
+            {% endfor %}
+            ]
+        }]
+        {% endif %}
+    });
+});
+    </script>
+{% endblock %}

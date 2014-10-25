@@ -1,0 +1,18 @@
+{% extends "index.html" %}
+{% load crispy_forms_tags %}
+{% block content %}
+<div class="col-lg-4 col-lg-offset-4">
+    <div class="list-group">
+    <a href="/visualization/single/unemployment" class="list-group-item ">
+        <!-- <span class="glyphicon glyphicon-camera"></span> --> Monthly unemployment by state <span class="badge">new</span>
+    </a>
+    <a href="/visualization/kmeans" class="list-group-item">
+        <!-- <span class="glyphicon glyphicon-file"></span> --> K-means test <span class="badge">new</span>
+    </a>
+    
+    </div>
+</div>
+{% endblock %}
+
+{% block js_extra %}
+{% endblock %}
