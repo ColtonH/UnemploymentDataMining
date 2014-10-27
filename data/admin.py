@@ -39,7 +39,7 @@ def export_as_csv_action(description="Export selected objects as CSV file",
 @admin.register(UsState)
 class UsStateAdmin(admin.ModelAdmin):
     list_display = ('name','code',)
-    lsit_search= ['name',]
+    list_search= ['name',]
     actions = [export_as_csv_action("Export selected data to CSV", fields= list_display, header=True),]
 @admin.register(UnemploymentByStateMonthly)
 class UnemploymentByStateMonthlyAdmin(admin.ModelAdmin):

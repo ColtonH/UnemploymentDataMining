@@ -30,9 +30,10 @@ def initialize_clusters(data,num_clusters):
     clusters=[data[random.randint(0,len(data)-1)] for i in range(0,num_clusters)]
     return clusters
 
-def kmeans(data, num_clusters,min_error=0.01,max_iter=100):
+def kmeans(data, num_clusters,min_error=0.01,max_iter=100,clusters=None):
     data = np.matrix(data)
-    clusters = initialize_clusters(data, num_clusters)
+    if not clusters:
+        clusters = initialize_clusters(data, num_clusters)
     min_error = 99999999999999999999999999.9
     num_iter = 0
     error_list=[]
@@ -54,6 +55,31 @@ def get_groups(data, cluster_ind,num_clusters):
     grouped_data = dict([(i,data[np.where(cluster_ind==i)[0]].tolist()) for i in range (0,num_clusters)])
     return grouped_data
 
+
+# The critical part is which cluster to choose for splitting. 
+# And there are different ways to proceed, for example, you can 
+# choose the biggest cluster or the cluster with the worst quality 
+# or a combination of both
+
+# TODO pick cluster using some kind of heuristic, not random...
+def bisecting_kmeans(data,k,min_error=0.01,max_iter=500):
+    data = np.matrix(data)
+    clusters = [data.mean(axis=0)]
+    error_list=[]
+    for num_iter in range(0,k):
+        for num_iter2 in range(0,max_iter):
+            min_error=99999999999999.9
+            new_cluster = initialize_clusters(data,1)
+            candidate_clusters= clusters+new_cluster
+            grouped_data, candidate_clusters, candidate_error_list = kmeans(data,num_iter+1,min_error,max_iter,candidate_clusters)
+            if min_error > candidate_error_list[len(candidate_error_list)-1]:
+                min_error = candidate_error_list[len(candidate_error_list)-1]
+                min_candidate_clusters = candidate_clusters
+                min_grouped_data = grouped_data
+        clusters = min_candidate_clusters
+        grouped_data = min_grouped_data
+        error_list.append(min_error)
+    return grouped_data, clusters, error_list 
 # data = np.matrix([[1,2],[3,4],[5,6],[-1,1],[-4,4],[-6,1]])
 
 # kmeans(data,2)

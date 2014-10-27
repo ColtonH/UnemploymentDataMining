@@ -44,7 +44,10 @@ def kmeans_test(request):
             # Generate random data
             data = numpy.random.random((sample_size, 2)) 
             # Calculate kmeans
-            grouped_data, clusters, error_list = kmeans.kmeans(data,num_clusters=k, min_error=0.01, max_iter=100)
+            if form.cleaned_data['method']=='Basic':
+                grouped_data, clusters, error_list = kmeans.kmeans(data,num_clusters=k, min_error=0.01, max_iter=100)
+            else:
+                grouped_data, clusters, error_list = kmeans.bisecting_kmeans(data,k=k, min_error=0.01, max_iter=50)
     return render_to_response('visualization/kmeans.html', {
         'data': grouped_data,
         'clusters': clusters,

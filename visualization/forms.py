@@ -34,9 +34,15 @@ K_CHOICES = (
     ('9', '9'),
     ('10', '10'),      
 )
+
+KMEANS_METHOD_CHOICES = (
+    ('Basic','Basic kmeans'),
+    ('Bisective','Bisecting kmeans'),
+)
 class kmeansNumSamplesForm(forms.Form):
     num_samples = forms.ChoiceField(choices=NUM_SAMPLES_CHOICES)
     k = forms.ChoiceField(choices=K_CHOICES)
+    method = forms.ChoiceField(choices=KMEANS_METHOD_CHOICES)
     def __init__(self, *args, **kwargs):
         super(kmeansNumSamplesForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper()
