@@ -53,6 +53,8 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    #For ipython use manage.py shellplus
+    'django_extensions',
     # External libraries
     'crispy_forms',
      # Project apps
