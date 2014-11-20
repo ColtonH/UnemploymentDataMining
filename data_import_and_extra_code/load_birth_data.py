@@ -23,14 +23,19 @@ def retrieve_data(path,files):
             state = sheet_ranges['B'+str(row)].value
             if (not state or state==""):
                 break
-            year = int(sheet_ranges['D'+str(row)].value)
-            race =  sheet_ranges['F'+str(row)].value
+            year = int(sheet_ranges['F'+str(row)].value)
+            race =  sheet_ranges['D'+str(row)].value
             births =  int(sheet_ranges['H'+str(row)].value)
             birth_rate = sheet_ranges['J'+str(row)]
             if (birth_rate.value):
                 birth_rate = float(birth_rate.value)
             else:
                 birth_rate = None
+            fertility_rate = sheet_ranges['L'+str(row)]
+            if (fertility_rate.value):
+                fertility_rate = float(fertility_rate.value)
+            else:
+                fertility_rate = None
             total_population = sheet_ranges['I'+str(row)]
             if (total_population.value):
                 total_population = float(total_population.value)
@@ -44,6 +49,7 @@ def retrieve_data(path,files):
                 'births': births,
                 'birth_rate' : birth_rate,
                 'total_population': total_population,
+                'fertility_rate':fertility_rate,
             }
     return data
 
@@ -86,7 +92,7 @@ def insert_natality_state(state,state_data):
     for year in state_data.keys():
         for race in state_data[year].keys():
             data = state_data[year][race]
-            print '%d: %s %d %s %s' % (year,race,data['births'],str(data['birth_rate']),str(data['total_population']))
+            # print '%d: %s %d %s %s %s' % (year,race,data['births'],str(data['birth_rate']),str(data['total_population'],str(data['fertility_rate'])))
             race_model = get_race_or_add_it(race)
             if state_data[year][race]:
                 natality_data_record = NatalityByStateYearly(
@@ -96,15 +102,18 @@ def insert_natality_state(state,state_data):
                     num_births=data['births'],
                     birth_rate=data['birth_rate'],  
                     total_population=data['total_population'],
+                    fertility_rate=data['fertility_rate'],
                 )
                 natality_data_record.save()
 
 def insert_natality_all_states( data):
+    #First delete all data (we are going to innsert it again)
+    NatalityByStateYearly.objects.all().delete()
     for state in data.keys():
         insert_natality_state(state,data[state])
 
 def main():
-    path = '/home/menarguez/codes/natality'
+    path = '/webapps/unemployment_mining/unemployment_mining/data_import_and_extra_code/natality'
     ext = 'xlsx'
     files = getFilesInDir(path,ext)
     print "Reading data"

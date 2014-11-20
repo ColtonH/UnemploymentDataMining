@@ -1,5 +1,5 @@
 from django.contrib import admin
-from models import UsState,UnemploymentByStateMonthly, Crisis, Race,NatalityByStateYearly
+from models import UsState,UnemploymentByStateMonthly, Crisis, Race,NatalityByStateYearly,MortalityByStateYearly
 import csv
 from django.http import HttpResponse
 
@@ -58,6 +58,12 @@ class RaceAdmin(admin.ModelAdmin):
 
 @admin.register(NatalityByStateYearly)
 class NatalityByStateYearlyAdmin(admin.ModelAdmin):
-    list_display = ('state','year','race','birth_rate','num_births','total_population',)
+    list_display = ('state','year','race','num_births','birth_rate','fertility_rate','total_population',)
+    list_filter= ['state','year','race',]
+    actions = [export_as_csv_action("Export selected data to CSV", fields= list_display, header=True),]
+
+@admin.register(MortalityByStateYearly)
+class MortalityByStateYearlyAdmin(admin.ModelAdmin):
+    list_display = ('state','year','race','num_deaths','crude_rate','total_population',)
     list_filter= ['state','year','race',]
     actions = [export_as_csv_action("Export selected data to CSV", fields= list_display, header=True),]
