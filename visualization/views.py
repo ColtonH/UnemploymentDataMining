@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render,HttpResponse
 from django.http import Http404
 from django.shortcuts import render_to_response, get_object_or_404
 from data.models import UnemploymentByStateMonthly, UsState
@@ -6,6 +6,8 @@ from forms import UsStateSelectForm, kmeansNumSamplesForm, UnemploymentByStateFo
 from django.template import RequestContext
 from django.db.models import Avg, Max, Min, Sum
 import numpy
+import json as simplejson
+from django.views.decorators.csrf import csrf_exempt
 # Import Michael's implementation for kmeans
 import kmeans
 def index(request):
@@ -96,6 +98,14 @@ def unemployment(request):
         'form':form,
         'title':title,
         }, context_instance=RequestContext(request))
-
+@csrf_exempt
 def unemployment_json(request):
-    pass
+    if request.method == 'POST':
+        json_data = simplejson.loads(request.raw_post_data)
+        try:
+            data = json_data['data']
+            state_code = data["state_code"]
+            return HttpResponse("OK")
+        except KeyError:
+            return HttpResponse("Malformed data!")
+    return HttpResponse("No post")

@@ -57,7 +57,8 @@ INSTALLED_APPS = (
     'django_extensions',
     # External libraries
     'crispy_forms',
-     # Project apps
+    'dajaxice', 
+    # Project apps
     'data',
     'visualization',
 )
@@ -127,11 +128,15 @@ CRISPY_TEMPLATE_PACK = 'bootstrap3'
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
     'django.contrib.staticfiles.finders.FileSystemFinder',
+    'dajaxice.finders.DajaxiceFinder',
 )
 
 TEMPLATE_CONTEXT_PROCESSORS = (
-    "django.core.context_processors.request",
-    'django.contrib.messages.context_processors.messages',
     'django.contrib.auth.context_processors.auth',
-
+    'django.core.context_processors.debug',
+    'django.core.context_processors.i18n',
+    'django.core.context_processors.media',
+    'django.core.context_processors.static',
+    'django.core.context_processors.request',
+    'django.contrib.messages.context_processors.messages',
 )
