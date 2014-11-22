@@ -15,15 +15,16 @@ def index(request):
         }, context_instance=RequestContext(request))
 
 
-def single_unemployment(request):
+def unemployment_timesseries(request):
     state=None
     data = None
     form = UsStateSelectForm()
     if request.method == 'POST':
         form = UsStateSelectForm(request.POST)
         if form.is_valid():
-            state = get_object_or_404(UsState, name=form.cleaned_data['name'])
-            data = UnemploymentByStateMonthly.objects.filter(state= state ).order_by('year','month')
+            states = form.cleaned_data['name']
+            states_id = [ int(state.id) for state in states  ]
+            data = UnemploymentByStateMonthly.objects.filter(state__id__in= states_id ).order_by('state','year','month')
     
     return render_to_response('visualization/linechart.html', {
         'data': data,

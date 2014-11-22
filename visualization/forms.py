@@ -7,7 +7,7 @@ from django.db.models import Max, Min
 from django.core.exceptions import ValidationError
 
 class UsStateSelectForm(forms.Form):
-    name = forms.ModelChoiceField(queryset=UsState.objects.all().order_by('name'))
+    name = forms.ModelMultipleChoiceField(queryset=UsState.objects.all().order_by('name'))
     def __init__(self, *args, **kwargs):
         super(UsStateSelectForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper()

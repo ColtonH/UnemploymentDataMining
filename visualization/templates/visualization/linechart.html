@@ -31,7 +31,7 @@ $(function () {
             text: 
             {% if not state %}'No state selected'
             {% else %}
-            'Unemployment in {{state.name}} monthly (http://www.bls.gov/)'
+            'Unemployment in the US monthly (http://www.bls.gov/)'
             {% endif %}
         },
         xAxis: {
@@ -45,26 +45,33 @@ $(function () {
         },
         yAxis: {
             title: {
-                text: 'Snow depth (m)'
+                text: '% of total state population'
             },
             min: 0
         },
-        tooltip: {
-            headerFormat: '<b>{series.name}</b><br>',
-            pointFormat: '{point.x:%B %Y}: {point.y:.2f} %'
-        },
+        // tooltip: {
+        //     headerFormat: '<b>{series.name}</b><br>',
+        //     pointFormat: '{point.x:%B %Y}: {point.y:.2f} %'
+        // },
         {% if data %}
-        series: [{
-            name: 'Monthly unemployment of {{state.name}} (http://www.bls.gov/)',
+        series: [
+            
             // Define the data points. All series have a dummy year
             // of 1970/71 in order to be compared on the same x axis. Note
             // that in JavaScript, months start at 0 for January, 1 for February etc.
-            data: [
             {% for element in data %}
-                {% if not forloop.first %},{% endif %}[Date.UTC({{element.year}},{{element.month}},1),{{element.value}}]
+                {% ifchanged element.state %}
+                 {% if not forloop.first %} ]},{% endif %}
+                 {name: '{{element.state.name}}',
+                 data: [[Date.UTC({{element.year}},{{element.month}},1),{{element.value}}]
+                {% else %}
+                  ,[Date.UTC({{element.year}},{{element.month}},1),{{element.value}}]
+                {% endifchanged %}
             {% endfor %}
-            ]
-        }]
+            {% if data %}
+                ]}]
+            {% endif%}
+    
         {% endif %}
     });
 });

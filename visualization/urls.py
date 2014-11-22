@@ -3,7 +3,7 @@ from . import views
 
 urlpatterns = patterns('',
     url(r'^$', views.index),
-    url(r'^single/unemployment$', views.single_unemployment),
+    url(r'^single/unemployment$', views.unemployment_timesseries),
     url(r'^kmeans$', views.kmeans_test),
     url(r'^unemployment_map$',views.unemployment),
     url(r'^unemployment/json$',views.unemployment_json),
