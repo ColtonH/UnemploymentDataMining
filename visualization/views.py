@@ -2,8 +2,9 @@ from django.shortcuts import render
 from django.http import Http404
 from django.shortcuts import render_to_response, get_object_or_404
 from data.models import UnemploymentByStateMonthly, UsState
-from forms import UsStateSelectForm, kmeansNumSamplesForm
+from forms import UsStateSelectForm, kmeansNumSamplesForm, UnemploymentByStateForm
 from django.template import RequestContext
+from django.db.models import Avg, Max, Min, Sum
 import numpy
 # Import Michael's implementation for kmeans
 import kmeans
@@ -56,3 +57,45 @@ def kmeans_test(request):
         'k': k,
         'sample_size': sample_size,
         }, context_instance=RequestContext(request))
+
+def unemployment(request):
+    form = UnemploymentByStateForm()
+    max_year = form.getMaxYear()
+    min_year = form.getMinYear()
+    
+    if request.method=='POST':
+        form = UnemploymentByStateForm(request.POST)
+        if form.is_valid():
+            if form.cleaned_data["starting_year"]!='':
+                min_year = form.cleaned_data["starting_year"]
+            if form.cleaned_data["ending_year"]!='':        
+                max_year = form.cleaned_data["ending_year"]
+            data = UnemploymentByStateMonthly.objects.filter(year__gte=min_year,year__lte=max_year).select_related('state__code').values('state','state__code')
+            method = form.cleaned_data["aggregation_method"]
+            if method=='mean':
+                data=data.annotate(value=Avg('value'))
+            elif method=="min":
+                data=data.annotate(value=Min('value'))
+            elif method=="max":
+                data=data.annotate(value=Max('value'))
+            elif method=="sum":
+                data=data.annotate(value=Sum('value'))
+
+        else:
+            return render_to_response('visualization/unemployment_map.html', {
+                'data': None,
+                'form':form,
+                'title':"Please check form errors",
+                }, context_instance=RequestContext(request))
+        
+    else:    
+        data = UnemploymentByStateMonthly.objects.select_related('state__code').values('state','state__code').annotate(value=Avg('value'))
+    title = "Unemployment in the US ("+str(min_year)+"-"+str(max_year)+") [Average]" 
+    return render_to_response('visualization/unemployment_map.html', {
+        'data': data,
+        'form':form,
+        'title':title,
+        }, context_instance=RequestContext(request))
+
+def unemployment_json(request):
+    pass
