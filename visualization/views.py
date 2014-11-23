@@ -15,7 +15,7 @@ def index(request):
         }, context_instance=RequestContext(request))
 
 
-def unemployment_timesseries(request):
+def timeseries_unemployment(request):
     state=None
     data = None
     form = UsStateSelectForm()
@@ -61,7 +61,7 @@ def kmeans_test(request):
         'sample_size': sample_size,
         }, context_instance=RequestContext(request))
 
-def unemployment(request):
+def map_unemployment(request):
     form = UnemploymentByStateForm()
     max_year = form.getMaxYear()
     min_year = form.getMinYear()
@@ -99,14 +99,3 @@ def unemployment(request):
         'form':form,
         'title':title,
         }, context_instance=RequestContext(request))
-@csrf_exempt
-def unemployment_json(request):
-    if request.method == 'POST':
-        json_data = simplejson.loads(request.raw_post_data)
-        try:
-            data = json_data['data']
-            state_code = data["state_code"]
-            return HttpResponse("OK")
-        except KeyError:
-            return HttpResponse("Malformed data!")
-    return HttpResponse("No post")

@@ -15,7 +15,7 @@ class UsStateSelectForm(forms.Form):
         self.helper.form_class = 'form-horizontal'
         self.helper.label_class = 'col-lg-2'
         self.helper.field_class = 'col-lg-8'
-        self.helper.form_action = '/visualization/single/unemployment'
+        self.helper.form_action = '/visualization/timeseries/unemployment'
         self.helper.add_input(Submit('submit', 'Submit'))
 
 NUM_SAMPLES_CHOICES = (
@@ -52,7 +52,7 @@ class kmeansNumSamplesForm(forms.Form):
         self.helper.form_class = 'form-horizontal'
         self.helper.label_class = 'col-lg-2'
         self.helper.field_class = 'col-lg-8'
-        self.helper.form_action = '/visualization/kmeans'
+        self.helper.form_action = '/visualization/playground/kmeans'
         self.helper.add_input(Submit('submit', 'Submit'))
 
 AGGREGATION_CHOICES=(
@@ -82,7 +82,7 @@ class UnemploymentByStateForm(forms.Form):
         self.helper.form_class = 'form-inline'
         # self.helper.label_class = 'col-lg-2'
         # self.helper.field_class = 'col-lg-8'
-        self.helper.form_action = '/visualization/unemployment_map'
+        self.helper.form_action = '/visualization/map/unemployment'
         self.helper.add_input(Submit('submit', 'Submit'))
     def getMinYear(self):
         return self.ini_year

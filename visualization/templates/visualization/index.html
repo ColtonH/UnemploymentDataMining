@@ -1,20 +1,35 @@
 {% extends "index.html" %}
 {% load crispy_forms_tags %}
 {% block content %}
-<div class="col-lg-4 col-lg-offset-4">
+<div class="col-lg-4 col-md-6 col-sm-12">
+    <h1 class="text-center"><i class="fa fa-line-chart"></i> Timeseries</h1>
     <div class="list-group">
-    <a href="/visualization/single/unemployment" class="list-group-item ">
-        <!-- <span class="glyphicon glyphicon-camera"></span> --> Unemployment timeseries (by state) <span class="badge">new</span>
-    </a>
-    <a href="/visualization/kmeans" class="list-group-item">
-        <!-- <span class="glyphicon glyphicon-file"></span> --> K-means test <span class="badge">new</span>
-    </a>
-    <a href="/visualization/unemployment_map" class="list-group-item">
-        <!-- <span class="glyphicon glyphicon-file"></span> --> Unemployment map <span class="badge">new</span>
-    </a> 
-     
+
+        <a class="list-group-item" href="/visualization/timeseries/unemployment" >
+            <h4 class="list-group-item-heading">Unemployment in the US</h4>
+            <p class="list-group-item-text">View single or multiple states unemployment from 1976 to 2013 in three clicks!</p>
+        </a>
     </div>
 </div>
+
+<div class="col-lg-4 col-md-6 col-sm-12">
+    <h1 class="text-center"><i class="fa fa-line-chart"></i> Maps </h1>
+    <div class="list-group">
+        <a class="list-group-item"  href="/visualization/map/unemployment">   
+            <h4 class="list-group-item-heading">Unemployment in the US</h4>
+            <p class="list-group-item-text">Get an interactive colored map of the US unemployment and filter the years you want to aggregate results. You can also visualize a state's timeseries with a single click on the state! </p>
+        </a> 
+    </div>
+</div>
+
+<div class="col-lg-4 col-md-6 col-sm-12">
+    <h1 class="text-center"><i class="fa fa-paw"></i> Playground </h1>
+    <div class="list-group">
+        <h4 class="list-group-item-heading">K means example</h4>
+            <p class="list-group-item-text">Need to work more on this section</p>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block js_extra %}
