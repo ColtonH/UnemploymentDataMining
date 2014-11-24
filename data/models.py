@@ -9,11 +9,6 @@ class UsState(models.Model):
         unique_together = (('name',),)
     def __unicode__(self):
         return u'%s' %(self.name)
-    def as_dict(self):
-        return {
-            'name': self.name,
-            'code': self.code
-        }
 
 class UnemploymentByStateMonthly(models.Model):
     state = models.ForeignKey('UsState')
@@ -22,13 +17,6 @@ class UnemploymentByStateMonthly(models.Model):
     value = models.FloatField(null=False)
     def Meta():
         unique_together=(('state','year','month'),)
-    def as_dict(self):
-        return {
-            'state': self.state,
-            'name': self.year,
-            'code': self.month,
-            'value': self.value,
-        }
 
 class Race(models.Model):
     name = models.CharField(null=False,blank=False,max_length=100)
@@ -54,7 +42,6 @@ class MortalityByStateYearly(models.Model):
     num_deaths = models.PositiveIntegerField(null=False)
     total_population = models.PositiveIntegerField(null=True)
     crude_rate = models.FloatField(null=True)  
-    fertility_rate = models.FloatField(null=True)
 #========================================================
 class Crisis(models.Model):
     year = models.PositiveIntegerField(null=False)

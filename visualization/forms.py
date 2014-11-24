@@ -15,8 +15,20 @@ class UsStateSelectForm(forms.Form):
         self.helper.form_class = 'form-horizontal'
         self.helper.label_class = 'col-lg-2'
         self.helper.field_class = 'col-lg-8'
-        self.helper.form_action = '/visualization/timeseries/unemployment'
+        self.helper.form_action = ''
         self.helper.add_input(Submit('submit', 'Submit'))
+
+# class UsStateSelectFormMortality(forms.Form):
+#     name = forms.ModelMultipleChoiceField(queryset=UsState.objects.all().order_by('name'))
+#     def __init__(self, *args, **kwargs):
+#         super(UsStateSelectForm, self).__init__(*args, **kwargs)
+#         self.helper = FormHelper()
+#         self.helper.form_method = 'post'
+#         self.helper.form_class = 'form-horizontal'
+#         self.helper.label_class = 'col-lg-2'
+#         self.helper.field_class = 'col-lg-8'
+#         self.helper.form_action = '/visualization/timeseries/num_births'
+#         self.helper.add_input(Submit('submit', 'Submit'))
 
 NUM_SAMPLES_CHOICES = (
     ('10', '10'),

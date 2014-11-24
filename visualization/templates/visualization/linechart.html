@@ -6,7 +6,7 @@
         Select an State from the United States.
         {% crispy form %}
     </div>
-    <div id="graph_div" style="margin-top:50px;"></div>
+    <div id="graph_div" style="margin-top:50px; height: 40%;max-height:300px"></div>
     <!-- {{data}} -->
 {% endblock %}
 
@@ -15,8 +15,9 @@
 <script src="http://code.highcharts.com/modules/exporting.js"></script>
 
 <script type="text/javascript">
+var myChart
 $(function () {
-    $('#graph_div').highcharts({
+    myChart = $('#graph_div').highcharts({
         chart: {
             type: 'spline'
         },
@@ -24,14 +25,14 @@ $(function () {
             text: 
             {% if not state %}'No state selected'
             {% else %}
-            '{{state.name}}'
+            '{{title}}'
             {% endif %}
         },
         subtitle: {
             text: 
-            {% if not state %}'No state selected'
+            {% if not state %}'Please select one or more states from the upper form'
             {% else %}
-            'Unemployment in the US monthly (http://www.bls.gov/)'
+            '{{subtitle}}'
             {% endif %}
         },
         xAxis: {
@@ -45,9 +46,9 @@ $(function () {
         },
         yAxis: {
             title: {
-                text: '% of total state population'
+                text: '{{y_axis}}'
             },
-            min: 0
+            id:'my_y'
         },
         // tooltip: {
         //     headerFormat: '<b>{series.name}</b><br>',
@@ -55,17 +56,16 @@ $(function () {
         // },
         {% if data %}
         series: [
-            
             // Define the data points. All series have a dummy year
             // of 1970/71 in order to be compared on the same x axis. Note
             // that in JavaScript, months start at 0 for January, 1 for February etc.
             {% for element in data %}
                 {% ifchanged element.state %}
                  {% if not forloop.first %} ]},{% endif %}
-                 {name: '{{element.state.name}}',
-                 data: [[Date.UTC({{element.year}},{{element.month}},1),{{element.value}}]
+                 {name: '{{element.state__name}}', 
+                 data: [[Date.UTC({{element.year}},{% if element.month %}{{element.month}}{% else %}1{% endif %},1),{{element.value}}]
                 {% else %}
-                  ,[Date.UTC({{element.year}},{{element.month}},1),{{element.value}}]
+                  ,[Date.UTC({{element.year}},{% if element.month %}{{element.month}}{% else %}1{% endif %},1),{{element.value}}]
                 {% endifchanged %}
             {% endfor %}
             {% if data %}
@@ -74,6 +74,11 @@ $(function () {
     
         {% endif %}
     });
+     $(window).resize();
+    // yAxis = myChart.highcharts().get('my_y');
+    // var extremes =yAxis.getExtremes();  // {min:, max:, dataMin:, dataMax:}
+    // yAxis.setExtremes(extremes.min, extremes.min.max);
 });
+
     </script>
 {% endblock %}

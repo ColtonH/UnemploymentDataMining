@@ -1,22 +1,69 @@
 {% extends "index.html" %}
 {% load crispy_forms_tags %}
 {% block content %}
+<style type="text/css">
+    h3 {
+        color:orange;
+        font-weight: bold;
+    }
+</style>
 <div class="col-lg-4 col-md-6 col-sm-12">
     <h1 class="text-center"><i class="fa fa-line-chart"></i> Timeseries</h1>
+    <h3> Unemployment</h3>
     <div class="list-group">
-
         <a class="list-group-item" href="/visualization/timeseries/unemployment" >
-            <h4 class="list-group-item-heading">Unemployment in the US</h4>
+            <h4 class="list-group-item-heading"><strong>Unemployment</strong> in the US (by state, monthly)</h4>
             <p class="list-group-item-text">View single or multiple states unemployment from 1976 to 2013 in three clicks!</p>
+        </a>
+    </div>
+    <h3>Natality</h3>
+    <div class="list-group">
+        <a class="list-group-item" href="/visualization/timeseries/natality/num_births" >
+            <h4 class="list-group-item-heading"><strong>Births</strong> in the US (by state, yearly)</h4>
+            <p class="list-group-item-text">View single or multiple states number of births from 2000 to 2013 in three clicks!</p>
+        </a>
+        <a class="list-group-item" href="/visualization/timeseries/natality/birth_rate" >
+            <h4 class="list-group-item-heading"><strong>Birth rate </strong> in the US (by state,monthly)</h4>
+            <p class="list-group-item-text">View single or multiple states natality from 2000 to 2013 in three clicks!</p>
+        </a>
+        <a class="list-group-item" href="/visualization/timeseries/natality/fertility_rate" >
+            <h4 class="list-group-item-heading"><strong>Fertility rate </strong> in the US (by state,monthly)</h4>
+            <p class="list-group-item-text">View single or multiple states natality from 2000 to 2013 in three clicks!</p>
+        </a>
+    </div>
+    <h3>Mortality</h3>
+    <div class="list-group">
+        <a class="list-group-item" href="/visualization/timeseries/mortality/num_deaths" >
+            <h4 class="list-group-item-heading"><strong>Deaths </strong> in the US (by state, monthly)</h4>
+            <p class="list-group-item-text">View single or multiple states number of deaths from 2000 to 2013 in three clicks!</p>
+        </a>
+        <a class="list-group-item" href="/visualization/timeseries/mortality/crude_rate" >
+            <h4 class="list-group-item-heading"><strong> Crude rate</strong> in the US (by state, monthly)</h4>
+            <p class="list-group-item-text">View single or multiple states mortality from 2003 to 2013 in three clicks!</p>
         </a>
     </div>
 </div>
 
 <div class="col-lg-4 col-md-6 col-sm-12">
     <h1 class="text-center"><i class="fa fa-line-chart"></i> Maps </h1>
+    <h3> Unemployment</h3>
     <div class="list-group">
         <a class="list-group-item"  href="/visualization/map/unemployment">   
-            <h4 class="list-group-item-heading">Unemployment in the US</h4>
+            <h4 class="list-group-item-heading"><strong>Unemployment</strong> in the US</h4>
+            <p class="list-group-item-text">Get an interactive colored map of the US unemployment and filter the years you want to aggregate results. You can also visualize a state's timeseries with a single click on the state! </p>
+        </a> 
+    </div>
+    <h3> Natality </h3>
+    <div class="list-group">
+        <a class="list-group-item"  href="/visualization/map/unemployment">   
+            <h4 class="list-group-item-heading"><strong>Unemployment</strong> in the US</h4>
+            <p class="list-group-item-text">Get an interactive colored map of the US unemployment and filter the years you want to aggregate results. You can also visualize a state's timeseries with a single click on the state! </p>
+        </a> 
+    </div>
+    <h3> Mortality</h3>
+    <div class="list-group">
+        <a class="list-group-item"  href="/visualization/map/unemployment">   
+            <h4 class="list-group-item-heading"><strong>Unemployment</strong> in the US</h4>
             <p class="list-group-item-text">Get an interactive colored map of the US unemployment and filter the years you want to aggregate results. You can also visualize a state's timeseries with a single click on the state! </p>
         </a> 
     </div>
