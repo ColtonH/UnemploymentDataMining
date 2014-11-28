@@ -23,20 +23,15 @@ $(function () {
             zoomType: 'xy'
         },
         title: {
-            text: 
-            'Kmeans'
+            text: '{% if title %}{{title}}{% else %}Clustering{% endif %}'
         },
         subtitle: {
-            text: 
-            {% if not sample_size or not k %}'No parameters selected'
-            {% else %}
-            'K-means example for k={{k}} with {{sample_size}} samples'
-            {% endif %}
+            text: ''
         },
         xAxis: {
             title: {
                 enabled: true,
-                text: 'X'
+                text: '{% if x_axis_name %}{{x_axis_name}}{% else %}x{% endif %}'
             },
             startOnTick: true,
             endOnTick: true,
@@ -44,7 +39,7 @@ $(function () {
         },
          yAxis: {
             title: {
-                text: 'y'
+                text: '{% if y_axis_name %}{{y_axis_name}}{% else %}y{% endif %}'
             }
         },
         legend: {
@@ -76,8 +71,8 @@ $(function () {
                     }
                 },
                 tooltip: {
-                    headerFormat: '<b>{series.name}</b><br>',
-                    pointFormat: '<span style="color:red">{point.year}</span>(x:{point.x}, y:{point.y})'
+                    headerFormat: '<b style="color:blue">({series.name})</b><br>',
+                    pointFormat: '<span style="color:red">{point.year} </span>(x:{point.x}, y:{point.y})'
                 }
             }
         }
@@ -90,7 +85,8 @@ $(function () {
                 {% else %}
                     ]},
                 {% endif%}
-                {name:'{{row.state_code}}',
+                {
+                 name:'{{row.state_code}}',
                  data:[{x:{{row.unemployment|floatformat:3}},y:{{row.variable|floatformat:3}},year:{{row.year}}}
             {% else %}
                 ,{x:{{row.unemployment|floatformat:3}},y:{{row.variable|floatformat:3}},year:{{row.year}}}
@@ -101,5 +97,82 @@ $(function () {
         {% endif %}
     });
 });
+
+/**
+ * A small plugin for getting the CSV of a rendered chart
+ */
+/*global Highcharts, document */
+(function (Highcharts) {
+
+    'use strict';
+
+    var each = Highcharts.each,
+        downloadAttrSupported = document.createElement('a').download !== undefined;
+
+
+    /**
+     * Get the data rows as a two dimensional array
+     */
+    Highcharts.Chart.prototype.getDataRows = function () {
+        var csv,
+            options = (this.options.exporting || {}).csv || {},
+            xAxis = this.xAxis[0],
+            rows = {},
+            rowArr = [],
+            dataRows,
+            names = [],
+            i,
+            x,
+
+            // Options
+            dateFormat = options.dateFormat || '%Y-%m-%d %H:%M:%S';
+
+        // Loop the series and index values
+        i = 0;
+        each(this.series, function (series) {
+            if (series.options.includeInCSVExport !== false) {
+                names.push(series.name);
+                each(series.points, function (point) {
+                    if (!rows[point.x]) {
+                        rows[point.x] = [];
+                    }
+                    rows[point.x].x = point.x;
+
+                    // Pies, funnels etc. use point name in X row
+                    if (!series.xAxis) {
+                        rows[point.x].name = point.name;
+                    }
+
+                    rows[point.x][i] = point.y;
+                });
+                i += 1;
+            }
+        });
+
+        // Make a sortable array
+        for (x in rows) {
+            if (rows.hasOwnProperty(x)) {
+                rowArr.push(rows[x]);
+            }
+        }
+        // Sort it by X values
+        rowArr.sort(function (a, b) {
+            return a.x - b.x;
+        });
+
+        // Add header row
+        dataRows = [[xAxis.isDatetimeAxis ? 'DateTime' : 'Category'].concat(names)];
+
+        // Transform the rows to CSV
+        each(rowArr, function (row, i) {
+
+            // Add the X/date/category
+            row.unshift(row.name || (xAxis.isDatetimeAxis ? Highcharts.dateFormat(dateFormat, row.x) : xAxis.categories ? Highcharts.pick(xAxis.categories[row.x], row.x) : row.x));
+            dataRows.push(row);
+        });
+
+        return dataRows;
+    };
+
    </script>
 {% endblock %}
