@@ -1,0 +1,105 @@
+{% extends "index.html" %}
+{% load crispy_forms_tags %}
+{% block content %}
+    <h1 class="text-center">Clustering</h1>
+    <div class="col-md-6 col-md-offset-3 well" style="margin-top:20px; padding-top:20px;">
+        Filtering options:
+        {% crispy form %}
+    </div>
+    <div class="col-md-6 col-md-offset-3" id="graph_div" style="margin-top:50px;"></div>
+    <div class="col-md-6 col-md-offset-3" id="error_div" style="margin-top:50px;"></div>
+
+{% endblock %}
+
+{% block js_extra %}
+<script src="http://code.highcharts.com/highcharts.js"></script>
+<script src="http://code.highcharts.com/modules/exporting.js"></script>
+
+<script type="text/javascript">
+$(function () {
+    $('#graph_div').highcharts({
+        chart: {
+            type: 'scatter',
+            zoomType: 'xy'
+        },
+        title: {
+            text: 
+            'Kmeans'
+        },
+        subtitle: {
+            text: 
+            {% if not sample_size or not k %}'No parameters selected'
+            {% else %}
+            'K-means example for k={{k}} with {{sample_size}} samples'
+            {% endif %}
+        },
+        xAxis: {
+            title: {
+                enabled: true,
+                text: 'X'
+            },
+            startOnTick: true,
+            endOnTick: true,
+            showLastLabel: true
+        },
+         yAxis: {
+            title: {
+                text: 'y'
+            }
+        },
+        legend: {
+            layout: 'vertical',
+            align: 'left',
+            verticalAlign: 'top',
+            x: 100,
+            y: 70,
+            floating: true,
+            backgroundColor: (Highcharts.theme && Highcharts.theme.legendBackgroundColor) || '#FFFFFF',
+            borderWidth: 1
+        },
+        plotOptions: {
+            scatter: {
+                marker: {
+                    radius: 5,
+                    states: {
+                        hover: {
+                            enabled: true,
+                            lineColor: 'rgb(100,100,100)'
+                        }
+                    }
+                },
+                states: {
+                    hover: {
+                        marker: {
+                            enabled: false
+                        }
+                    }
+                },
+                tooltip: {
+                    headerFormat: '<b>{series.name}</b><br>',
+                    pointFormat: '<span style="color:red">{point.year}</span>(x:{point.x}, y:{point.y})'
+                }
+            }
+        }
+
+        {% if data %}
+        ,series: [
+            {% for row in data %}
+            {% ifchanged row.state_name %}
+                {% if forloop.first %}
+                {% else %}
+                    ]},
+                {% endif%}
+                {name:'{{row.state_code}}',
+                 data:[{x:{{row.unemployment|floatformat:3}},y:{{row.variable|floatformat:3}},year:{{row.year}}}
+            {% else %}
+                ,{x:{{row.unemployment|floatformat:3}},y:{{row.variable|floatformat:3}},year:{{row.year}}}
+            {% endifchanged %}
+            {% endfor%}
+                ]}
+        ]
+        {% endif %}
+    });
+});
+   </script>
+{% endblock %}
