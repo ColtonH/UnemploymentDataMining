@@ -6,8 +6,13 @@
         Filtering options:
         {% crispy form %}
     </div>
-    <div class="col-md-6 col-md-offset-3" id="graph_div" style="margin-top:50px;"></div>
-    <div class="col-md-6 col-md-offset-3" id="error_div" style="margin-top:50px;"></div>
+    <div class="col-md-5 col-sm-10" id="graph_div" style="margin-top:50px; height:100%; max-height:600px"></div>
+    <div class="col-md-5 col-sm-10 col-sm-offset-1" id="clustering" style="margin-top:50px;"><img style="max-height:600px; height:100% " src="
+    {{clustering_img}}" alt="Clustering results"></div>
+    <div class="col-md-5 col-sm-10 col-sm-offset-1" id="coclustering" style="margin-top:50px;"><img style="max-height:600px; height:100%" src="
+    {{coclustering_img}}" alt="Clustering results"></div>
+
+
 
 {% endblock %}
 
@@ -97,82 +102,6 @@ $(function () {
         {% endif %}
     });
 });
-
-/**
- * A small plugin for getting the CSV of a rendered chart
- */
-/*global Highcharts, document */
-(function (Highcharts) {
-
-    'use strict';
-
-    var each = Highcharts.each,
-        downloadAttrSupported = document.createElement('a').download !== undefined;
-
-
-    /**
-     * Get the data rows as a two dimensional array
-     */
-    Highcharts.Chart.prototype.getDataRows = function () {
-        var csv,
-            options = (this.options.exporting || {}).csv || {},
-            xAxis = this.xAxis[0],
-            rows = {},
-            rowArr = [],
-            dataRows,
-            names = [],
-            i,
-            x,
-
-            // Options
-            dateFormat = options.dateFormat || '%Y-%m-%d %H:%M:%S';
-
-        // Loop the series and index values
-        i = 0;
-        each(this.series, function (series) {
-            if (series.options.includeInCSVExport !== false) {
-                names.push(series.name);
-                each(series.points, function (point) {
-                    if (!rows[point.x]) {
-                        rows[point.x] = [];
-                    }
-                    rows[point.x].x = point.x;
-
-                    // Pies, funnels etc. use point name in X row
-                    if (!series.xAxis) {
-                        rows[point.x].name = point.name;
-                    }
-
-                    rows[point.x][i] = point.y;
-                });
-                i += 1;
-            }
-        });
-
-        // Make a sortable array
-        for (x in rows) {
-            if (rows.hasOwnProperty(x)) {
-                rowArr.push(rows[x]);
-            }
-        }
-        // Sort it by X values
-        rowArr.sort(function (a, b) {
-            return a.x - b.x;
-        });
-
-        // Add header row
-        dataRows = [[xAxis.isDatetimeAxis ? 'DateTime' : 'Category'].concat(names)];
-
-        // Transform the rows to CSV
-        each(rowArr, function (row, i) {
-
-            // Add the X/date/category
-            row.unshift(row.name || (xAxis.isDatetimeAxis ? Highcharts.dateFormat(dateFormat, row.x) : xAxis.categories ? Highcharts.pick(xAxis.categories[row.x], row.x) : row.x));
-            dataRows.push(row);
-        });
-
-        return dataRows;
-    };
 
    </script>
 {% endblock %}
