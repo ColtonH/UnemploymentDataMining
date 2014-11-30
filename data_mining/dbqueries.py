@@ -15,7 +15,7 @@ def getAvailableYearChoices(model,variable):
 # variable aggregated by year and state, being able to fileter bi year /state.
 # The aggregation for unemployment is done using Avg and for the other variable
 # using Sum
-def get_unemp_vs_var_from_database_paired(model,variable,min_year,max_year,states=None,years=None,normalize_data=True):
+def get_unemp_vs_var_from_database_paired(model,variable,min_year,max_year,states=None,years=None,normalize_data=True,difference_unemp=False,difference_var=True):
     # Get table names for sql statements
     unemployment_table_name = UnemploymentByStateMonthly._meta.db_table
     model_table_name = model._meta.db_table
@@ -37,17 +37,46 @@ def get_unemp_vs_var_from_database_paired(model,variable,min_year,max_year,state
     # Build base SQL statements to avoid code repetition and to make it clearer.
     # Filters are only set on unemployment qury, as the outher where inner join on state
     # and year will filter the results not contained in those states and / or years
-    sql_unemployment='''SELECT state_id, year, Avg(value) as avg_value 
+    if not difference_unemp:
+        sql_unemployment='''SELECT state_id, year, Avg(value) as avg_value 
                     from %s
                     where %s %s
                     GROUP BY year, state_id
                     ORDER BY state_id,year
                     ''' % (unemployment_table_name,filter_years,filter_states)
-    sql_variable ='''SELECT state_id, year, Sum(%s) as variable 
+    else:
+        sql_unemployment='''SELECT VAR.state_id,VAR.year,(VAR.variable-VAR_SR.variable) as avg_value
+                    FROM
+                        (SELECT state_id, year, Avg(value) as variable 
+                        from %s
+                        where %s %s
+                        group by state_id,year) as VAR,
+                        (SELECT state_id, year+1 as year, Avg(value) as variable 
+                        from %s
+                        where %s %s
+                        group by state_id,year) as VAR_SR
+                    WHERE VAR.state_id = VAR_SR.state_id and VAR.year = VAR_SR.year
+        ''' %  (unemployment_table_name,filter_years,filter_states,unemployment_table_name,filter_years,filter_states)
+
+    if not difference_var:    
+        sql_variable ='''SELECT state_id, year, Sum(%s) as variable 
                     from %s
                     where %s %s
                     group by state_id,year
                 ''' % (variable,model_table_name,filter_years,filter_states,)
+    else:
+        sql_variable ='''SELECT VAR.state_id,VAR.year,(VAR.variable-VAR_SR.variable) as variable
+                        FROM
+                            (SELECT state_id, year, Sum(%s) as variable 
+                                                from %s
+                                                where %s %s
+                                                group by state_id,year) as VAR,
+                            (SELECT state_id, year+1 as year, Sum(%s) as variable 
+                                                from %s
+                                                where %s %s
+                                                group by state_id,year) as VAR_SR
+                        WHERE VAR.state_id = VAR_SR.state_id and VAR.year = VAR_SR.year
+                    ''' % (variable,model_table_name,filter_years,filter_states,variable,model_table_name,filter_years,filter_states,)
     # If user selects to normalize data, we need a pretty complex sql to do
     # normalization from the database.
     if normalize_data==True:
@@ -91,3 +120,4 @@ def get_unemp_vs_var_from_database_paired(model,variable,min_year,max_year,state
     data=cursor.fetchall()
     data = [{'state_name':row[0],'state_code':row[1],'year':row[2],'unemployment':row[3],'variable':row[4]} for row in data]
     return data
+

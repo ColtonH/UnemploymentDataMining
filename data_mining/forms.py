@@ -18,7 +18,9 @@ MAX_NUM_CLUSTERS = 8
 class ClusteringOptionsForm(forms.Form):
     states = forms.ModelMultipleChoiceField(queryset=UsState.objects.all().order_by('name'),required=False)
     years = forms.MultipleChoiceField(choices=(), required=False)
-    normalize_data = forms.BooleanField(required=False,initial=False)
+    normalize_data = forms.BooleanField(required=False,initial=True)
+    unemployment_difference = forms.BooleanField(required=False,initial=False)
+    variable_difference = forms.BooleanField(required=False,initial=True)
     clustering_algorithm = forms.ChoiceField(choices=CLUSTERING_CHOICES, initial='KMeans')
     number_of_clusters = forms.IntegerField(initial=2)
     def __init__(self, *args, **kwargs):

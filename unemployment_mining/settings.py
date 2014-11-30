@@ -61,6 +61,7 @@ INSTALLED_APPS = (
     # Project apps
     'data',
     'visualization',
+    'data_mining',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -118,6 +119,7 @@ TEMPLATE_LOADERS = (
         'django.template.loaders.app_directories.Loader',
     )),
 )
+
 
 # For crispy_forms
 

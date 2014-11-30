@@ -48,7 +48,7 @@ class UnemploymentByStateMonthlyAdmin(admin.ModelAdmin):
     actions = [export_as_csv_action("Export selected data to CSV", fields= list_display, header=True),]
 @admin.register(Crisis)
 class CrisisAdmin(admin.ModelAdmin):
-    list_display = ('year',)
+    list_display = ('year','crisis')
     list_filter =['year',]
     actions = [export_as_csv_action("Export selected data to CSV", fields= list_display, header=True),]
 @admin.register(Race)
@@ -67,3 +67,4 @@ class MortalityByStateYearlyAdmin(admin.ModelAdmin):
     list_display = ('state','year','race','num_deaths','crude_rate','total_population',)
     list_filter= ['state','year','race',]
     actions = [export_as_csv_action("Export selected data to CSV", fields= list_display, header=True),]
+	

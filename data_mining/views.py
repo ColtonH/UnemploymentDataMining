@@ -60,7 +60,7 @@ def cluster_data(data,clustering_method,num_clusters):
     return labels,cluster_centers,labels_unique,extra
 def clustering_unemp_var_raw(request, model,variable ):
     # Initialize all variables to None, they will be assigned if they are used
-    data = dataset = title = legend = min_val = max_val = dataset =   None
+    data = dataset = title = legend = min_val = max_val = dataset = cluster_year_freq=  None
     relative_file_path = relative_file_path2 = ''
     states = years = None
     normalize_data=True
@@ -84,24 +84,37 @@ def clustering_unemp_var_raw(request, model,variable ):
                 x_axis_name += ' (normalized)'
                 y_axis_name += ' (normalized)'
                 title += ' (normalized)'
-            clustering_method = form.cleaned_data['clustering_algorithm']
+            unemp_difference = form.cleaned_data['unemployment_difference']
+            unemployment_difference = form.cleaned_data['unemployment_difference']
+            variable_difference = form.cleaned_data['variable_difference']
             num_clusters = form.cleaned_data['number_of_clusters']
             # Get data
-            data = dbqueries.get_unemp_vs_var_from_database_paired(model,variable,min_year,max_year,states,years,normalize_data)
+            data = dbqueries.get_unemp_vs_var_from_database_paired(model,variable,min_year,max_year,states,years,normalize_data,unemployment_difference,variable_difference)
             # Adapt data for clustering algorithms as a numbpy array of 2D
             prepared_data = np.array([[float(row['unemployment']),float(row['variable'])] for row in data])  
-            label = [float(row['year']) for row in data]
+            year_labels = np.array([int(row['year']) for row in data])
             # Get clustering results
             labels,cluster_centers,labels_unique,extra = cluster_data(prepared_data,clustering_method, num_clusters)
             # Plot results using matplotlib
             colors = cycle('bgrcmykbgrcmykbgrcmykbgrcmyk')
-            # a = aaa
+            
+            # Count all frequency of years for each cluster
+            cluster_year_freq = {}
+            num_clusters = sum(labels_unique!=-1)
+            for k,col in zip(range(num_clusters),colors):
+                my_members = labels == k
+                
             for k, col in zip(labels_unique, colors):
                 my_members = labels == k
                 if k == -1:
                     col2 = 'k'
                     plt.plot(prepared_data[my_members, 0], prepared_data[my_members, 1], col2 + '.',markersize=8)
                 else:
+                    y = np.bincount(year_labels[my_members])
+                    ii = np.nonzero(y)[0]
+                    cluster_year_freq[k]={'id':k}
+                    cluster_year_freq[k]['color'] = col
+                    cluster_year_freq[k]['years']=zip(ii,y[ii])
                     if clustering_method=="DBSCAN":
                         core_samples_mask =extra
                         xy = prepared_data[my_members & core_samples_mask]
@@ -136,6 +149,8 @@ def clustering_unemp_var_raw(request, model,variable ):
             plt.savefig(path)
             plt.close()
 
+            
+
     return render_to_response('data_mining/clustering.html', {
         'data': data,
         'form':form,
@@ -148,5 +163,6 @@ def clustering_unemp_var_raw(request, model,variable ):
         'variable':variable,
         'clustering_img':'/media/'+relative_file_path,
         'coclustering_img':'/media/'+relative_file_path2,
+        'cluster_year_freq':cluster_year_freq
         
         }, context_instance=RequestContext(request))

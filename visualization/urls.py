@@ -1,5 +1,6 @@
 from django.conf.urls import patterns, url
 from . import views
+from data.models import UnemploymentByStateMonthly, NatalityByStateYearly, MortalityByStateYearly
 
 urlpatterns = patterns('',
     url(r'^$', views.index),
@@ -16,13 +17,19 @@ urlpatterns = patterns('',
     # END TIMESERIES
 
     # MAPS
+    url(r'^map/unemployment$',views.map_variable,{'variable':'value','model':UnemploymentByStateMonthly}),
 
-    # url(r'^map/natality$',views.natality_map),
-    # url(r'^map/mortality$',views.natality_map),
-    url(r'^map/unemployment$',views.map_unemployment),
+    url(r'^map/natality/num_births$',views.map_variable,{'variable':'num_births','model':NatalityByStateYearly}),
+    url(r'^map/natality/birth_rate$',views.map_variable,{'variable':'birth_rate','model':NatalityByStateYearly}),
+    url(r'^map/natality/fertility_rate$',views.map_variable,{'variable':'fertility_rate','model':NatalityByStateYearly}),
 
+    url(r'^map/mortality/num_deaths$',views.map_variable,{'variable':'num_deaths','model':MortalityByStateYearly}),
+    url(r'^map/mortality/crude_rate$',views.map_variable,{'variable':'crude_rate','model':MortalityByStateYearly}),
+    
     # END MAPS
     url(r'^playground/kmeans$', views.kmeans_test),
+	
+	url(r'^playground/association_mortality$',views.association_mortality),
     
     
     # url(r'^articles/(?P<year>\d{4})/$', views.year_archive),

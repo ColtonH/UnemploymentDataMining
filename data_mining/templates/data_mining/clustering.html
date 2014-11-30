@@ -6,12 +6,32 @@
         Filtering options:
         {% crispy form %}
     </div>
-    <div class="col-md-5 col-sm-10" id="graph_div" style="margin-top:50px; height:100%; max-height:600px"></div>
-    <div class="col-md-5 col-sm-10 col-sm-offset-1" id="clustering" style="margin-top:50px;"><img style="max-height:600px; height:100% " src="
+    <div class="col-md-12 text-center well"><h2>Results:</h2></div>
+    <div class="col-md-5 col-md-offset-1 col-sm-10" id="graph_div" style="margin-top:50px; height:100%; max-height:600px"></div>
+    <div class="col-md-5 col-sm-10" id="clustering" style="margin-top:50px;"><img style="max-height:600px; height:100% " src="
     {{clustering_img}}" alt="Clustering results"></div>
     <div class="col-md-5 col-sm-10 col-sm-offset-1" id="coclustering" style="margin-top:50px;"><img style="max-height:600px; height:100%" src="
     {{coclustering_img}}" alt="Clustering results"></div>
-
+    {% if cluster_year_freq %}
+    <div class="col-md-5">
+        <h3 class="text-center">Cluster summary table</h3>
+        {% for key,cluster in cluster_year_freq.items %}
+            <h4>Cluster #{{cluster.id}} ({{cluster.color}})</h4>
+            <table class="table table-striped">
+              <tr>
+                <th>Year</td>
+                <th>Counts</td>
+              </tr>
+              {% for year in cluster.years %}
+              <tr>
+                <td>{{year.0}}</td>
+                <td>{{year.1}}</td> 
+              </tr>
+              {% endfor %}
+            </table>    
+        {% endfor %}
+    </div>
+    {% endif %}
 
 
 {% endblock %}

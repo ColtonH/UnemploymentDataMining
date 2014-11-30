@@ -73,33 +73,28 @@ AGGREGATION_CHOICES=(
     ('max','Maximum'),
     ('sum','Sum of all values'),
     )
-def getYearChoices():
-    max_min_year = UnemploymentByStateMonthly.objects.values('state').annotate( max_year=Max('year'), min_year = Min('year')).values('min_year','max_year')
-    year_choices=()
-    if max_min_year:
-        year_choices= [(i,i) for i in range(int(max_min_year[0]['min_year']),int(max_min_year[0]['max_year']))]
-        year_choices.insert(0,('',''))
-        year_choices = tuple(year_choices)
-    return year_choices
-class UnemploymentByStateForm(forms.Form):
-    starting_year = forms.ChoiceField(choices=getYearChoices(),initial='',required=False)
-    ending_year = forms.ChoiceField(choices=getYearChoices(),initial='',required=False)
+
+class YearlyMapAggregationForm(forms.Form):
+    starting_year = forms.ChoiceField(choices=(),required=False)
+    ending_year = forms.ChoiceField(choices=(),required=False)
     aggregation_method = forms.ChoiceField(choices=AGGREGATION_CHOICES,initial='mean')
     def __init__(self, *args, **kwargs):
-        super(UnemploymentByStateForm, self).__init__(*args, **kwargs)
-        self.ini_year = getYearChoices()[1][0]
-        self.end_year = getYearChoices()[-1][0]
+        year_choices=None
+        if 'year_choices' in kwargs.keys():
+            year_choices = kwargs.pop('year_choices')
+        super(YearlyMapAggregationForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.form_method = 'post'
         self.helper.form_class = 'form-inline'
-        # self.helper.label_class = 'col-lg-2'
-        # self.helper.field_class = 'col-lg-8'
-        self.helper.form_action = '/visualization/map/unemployment'
+        self.helper.form_action = ''
         self.helper.add_input(Submit('submit', 'Submit'))
+        if year_choices:
+            self.fields['starting_year'].choices = year_choices
+            self.fields['ending_year'].choices = year_choices
     def getMinYear(self):
-        return self.ini_year
+        return self.fields['starting_year'].choices[0][0]
     def getMaxYear(self):
-        return self.end_year
+        return self.fields['starting_year'].choices[-1][0]
     def clean_ending_year(self):
         ending_year = self.cleaned_data["ending_year"]
         starting_year = self.cleaned_data["starting_year"]
