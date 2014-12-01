@@ -43,6 +43,18 @@ class ClusteringOptionsForm(forms.Form):
         return self.fields['starting_year'].choices[-1][0]
     def clean_number_of_clusters(self):
         number_of_clusters = self.cleaned_data['number_of_clusters']
-        if number_of_clusters>MAX_NUM_CLUSTERS or number_of_clusters<2:
-            raise ValidationError('The number of clusters must be >=2 and <=%d'%(MAX_NUM_CLUSTERS))
+        if number_of_clusters>MAX_NUM_CLUSTERS or number_of_clusters<1:
+            raise ValidationError('The number of clusters must be >=1 and <=%d'%(MAX_NUM_CLUSTERS))
         return number_of_clusters
+
+class SingleUsStateSelectForm(forms.Form):
+    name = forms.ModelChoiceField(queryset=UsState.objects.all().order_by('name'))
+    def __init__(self, *args, **kwargs):
+        super(SingleUsStateSelectForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_method = 'post'
+        self.helper.form_class = 'form-horizontal'
+        self.helper.label_class = 'col-lg-2'
+        self.helper.field_class = 'col-lg-8'
+        self.helper.form_action = ''
+        self.helper.add_input(Submit('submit', 'Submit'))

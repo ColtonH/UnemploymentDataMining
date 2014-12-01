@@ -4,7 +4,8 @@ from django.http import Http404
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from data.models import UnemploymentByStateMonthly, UsState, NatalityByStateYearly, MortalityByStateYearly
-from forms import ClusteringOptionsForm
+from forms import ClusteringOptionsForm, SingleUsStateSelectForm
+from visualization.forms import UsStateSelectForm
 from sklearn.cluster import KMeans, DBSCAN, AffinityPropagation, AgglomerativeClustering,MeanShift, Ward
 from sklearn.cluster.bicluster import SpectralCoclustering
 import numpy as np
@@ -15,8 +16,11 @@ from itertools import cycle
 from django.conf import settings
 from sklearn.neighbors import kneighbors_graph
 from sklearn.metrics import pairwise_distances
+from django.db.models import Avg, Max, Min, Sum
 #DB queries from Michael
 import dbqueries
+# Statistical Association from John
+import stat_association
 PLOTS_TEMP_FOLDER = 'tmp/plots/'
 def index(request):
     return render_to_response('data_mining/index.html', {}, context_instance=RequestContext(request))
@@ -88,6 +92,7 @@ def clustering_unemp_var_raw(request, model,variable ):
             unemployment_difference = form.cleaned_data['unemployment_difference']
             variable_difference = form.cleaned_data['variable_difference']
             num_clusters = form.cleaned_data['number_of_clusters']
+            clustering_method =form.cleaned_data['clustering_algorithm'] 
             # Get data
             data = dbqueries.get_unemp_vs_var_from_database_paired(model,variable,min_year,max_year,states,years,normalize_data,unemployment_difference,variable_difference)
             # Adapt data for clustering algorithms as a numbpy array of 2D
@@ -166,3 +171,74 @@ def clustering_unemp_var_raw(request, model,variable ):
         'cluster_year_freq':cluster_year_freq
         
         }, context_instance=RequestContext(request))
+		
+		
+def association_mortality(request):
+	state=None
+	data = None
+	form = SingleUsStateSelectForm()
+	title=yaxis=None
+	rules = ['a','b','c']
+	if request.method=='POST':
+		form = SingleUsStateSelectForm(request.POST)
+		if form.is_valid():
+			states = form.cleaned_data['name']
+			states_id = [ int(state.id) for state in states  ]
+			if (len(states_id)>0):
+				data = MortalityByStateYearly.objects.filter(state__id__in= states_id).values('state','year').select_related('state__name').annotate(value=Sum('crude_rate'))	
+				data = data.filter(crude_rate__isnull=False ).order_by('state','year').values('state','state__name','year','value')
+				title = "Crude Rate (yearly)"
+	return render_to_response('data_mining/association.html', {
+		'data': data,
+		'form':form,
+		'rules':rules,
+		'state': state,
+		'title': title,
+		'subtitle': '',
+		'yaxis':yaxis
+		}, context_instance=RequestContext(request))
+		
+def association_natality(request):
+	state=None
+	data = None
+	form = SingleUsStateSelectForm()
+	title=yaxis=None
+	rules = None
+	stateName = None
+	type='natality'
+	if request.method=='POST':
+		form = SingleUsStateSelectForm(request.POST)
+		if form.is_valid():
+			state = form.cleaned_data['name']
+			uData = UnemploymentByStateMonthly.objects.filter(state=state).values('state','year').select_related('state_name').annotate(value=Avg('value')).order_by('year')
+			data = NatalityByStateYearly.objects.filter(state= state).values('state','year').select_related('state__name').annotate(value=Sum('birth_rate'))	
+			data = data.filter(birth_rate__isnull=False ).order_by('state','year').values('state','state__name','year','value')
+			list = []
+			stateName = UsState.objects.filter(id=data[0]['state'])[0].name
+			for item in uData:
+				sID = item['state']
+				y = item['year']
+				val = item['value']
+				nvals = data.filter(year=y)
+				if(len(nvals)==0):
+					continue
+				nVal = nvals[0]['value']
+				if (nVal is None):
+					continue
+				list.append((sID,y,1,val,nVal))
+			info = stat_association.stat_association(list)
+			rules = info['rules']
+			data = info['values']
+			title = "Birth Rate (yearly)"
+			yaxis = "Birth Rate (per 1000 people)"
+	return render_to_response('data_mining/association.html', {
+		'data': data,
+		'rules':rules,
+		'form':form,
+		'stateName':stateName,
+		'type':type,
+		'state': state,
+		'title': title,
+		'subtitle': '',
+		'yaxis':yaxis
+		}, context_instance=RequestContext(request))

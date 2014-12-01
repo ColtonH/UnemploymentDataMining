@@ -10,6 +10,6 @@ urlpatterns = patterns('',
     # url(r'clustering/diff/unemployment_vs_births', views.clustering_unemp_var_diff,{'model':MortalityByStateYearly,'variable':"num_deaths"}),
     # url(r'clustering/diff/unemployment_vs_deaths', views.clustering_unemp_var_diff,{'model':MortalityByStateYearly,'variable':"num_deaths"}),
     #JOHN URLS HERE
-
+	url(r'association/natality',views.association_natality),
     #COLTON URLS HERE
 )

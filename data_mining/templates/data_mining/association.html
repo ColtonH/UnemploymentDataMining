@@ -1,0 +1,159 @@
+{% extends "index.html" %}
+{% load crispy_forms_tags %}
+{% block content %}
+	<h1 class="text-center">Statistical Association</h1>
+    <div class="text-center col-md-6 col-md-offset-3 well" style="margin-top:20px; padding-top:20px;">
+        Select a State from the United States.
+        {% crispy form %}
+    </div>
+	
+	{%if rules %}
+	<div id="rules_div" style="margin-top:50px; clear:both;"> <h2 style="padding-left:25px">Rules</h2>
+		<div style="margin-left:50px; margin-right:50px">
+		<h4>Unemployment rate is used to determine the mean and standard deviation of {{type}}.</h4>
+		{% for rule in rules %}
+			{%if rule != ''%}
+				{{rule | safe}}<br />
+			{%endif%}
+		{% endfor %}
+		<div>
+	</div>
+	{%endif%}
+	
+    <div id="graph_div" style="margin-top:50px; height: 40%;max-height:300px"></div>
+	
+	
+	
+    <!-- {{data| safe}} -->
+	<!-- {{rules | safe}} -->
+	
+	
+	
+	<!-- {{stateName}}-->
+{% endblock %}
+
+{% block js_extra %}
+<script src="http://code.highcharts.com/highcharts.js"></script>
+<script src="http://code.highcharts.com/modules/exporting.js"></script>
+
+<script type="text/javascript">
+function getUnemployment(year)
+{
+	data = [
+		{% for element in data %}
+			{% if not forloop.first %} ,{% endif %}
+			{year:{{element.1}}, unemployment:{{element.3}} }
+		{%endfor%}
+		];
+	for(i=0; i<data.length; i++)
+	{
+		if(year  == data[i].year)
+		{
+			return data[i].unemployment;
+		}
+	}
+}
+
+var myChart
+$(function () {
+    myChart = $('#graph_div').highcharts({
+        chart: {
+            type: 'spline'
+        },
+        title: {
+            text: 
+            {% if not state %}'No state selected'
+            {% else %}
+            '{{title}}'
+            {% endif %}
+        },
+        subtitle: {
+            text: 
+            {% if not state %}'Please select a state from the upper form'
+            {% else %}
+            '{{subtitle}}'
+            {% endif %}
+        },
+        xAxis: {
+            type: 'datetime',
+            dateTimeLabelFormats: { // don't display the dummy year
+                month:"%B %Y"
+            },
+            title: {
+                text: 'Date'
+            }
+        },
+        yAxis: {
+            title: {
+                text: '{{y_axis}}'
+            },
+            id:'my_y'
+        },    
+		tooltip: {
+			formatter: function() {
+				d = new Date(this.x)
+				year = d.getFullYear()
+				unemployment = getUnemployment(year)
+				debugger;
+				return   ''+year+'<br /><br />Value: ' + this.y + '<br /><br />Unemployment: '+unemployment;
+			}
+		},
+        // tooltip: {
+        //     headerFormat: '<b>{series.name}</b><br>',
+        //     pointFormat: '{point.x:%B %Y}: {point.y:.2f} %'
+        // },
+        {% if data %}
+        series: [
+            // Define the data points. All series have a dummy year
+            // of 1970/71 in order to be compared on the same x axis. Note
+            // that in JavaScript, months start at 0 for January, 1 for February etc.
+			{% if data %}
+				{name: '{{stateName}}',
+				data:[
+				{% for element in data %}
+					{% if not forloop.first %} ,{% endif %}
+					[Date.UTC({{element.1}},{{element.2}},1),{{element.6}},{{element.3}} ] 
+				{%endfor%}
+				]} ,
+				
+				{name: '{{stateName}} \u03BC+2\u03C3',
+				data:[
+				{% for element in data %}
+					{% if not forloop.first %} ,{% endif %}
+					[Date.UTC({{element.1}},{{element.2}},1),{{element.4}} ] 
+				{%endfor%}
+				]} ,
+				
+				{name: '{{stateName}} \u03BC-2\u03C3',
+				data:[
+				{% for element in data %}
+					{% if not forloop.first %} ,{% endif %}
+					[Date.UTC({{element.1}},{{element.2}},1),{{element.5}} ] 
+				{%endfor%}
+				]} 
+			{% endif%}
+				
+			]
+		{% comment %}
+            {% for element in data %}
+                {% ifchanged element.state %}
+                 {% if not forloop.first %} ]},{% endif %}
+                 {name: '{{element.state__name}}', 
+                 data: [[Date.UTC({{element.year}},{% if element.month %}{{element.month}}{% else %}1{% endif %},1),{{element.value}}]
+                {% else %}
+                  ,[Date.UTC({{element.year}},{% if element.month %}{{element.month}}{% else %}1{% endif %},1),{{element.value}}]
+                {% endifchanged %}
+            {% endfor %}
+                ]}]
+            {% endif%}
+		{% endcomment %}
+        {% endif %}
+    });
+     $(window).resize();
+    // yAxis = myChart.highcharts().get('my_y');
+    // var extremes =yAxis.getExtremes();  // {min:, max:, dataMin:, dataMax:}
+    // yAxis.setExtremes(extremes.min, extremes.min.max);
+});
+
+    </script>
+{% endblock %}
