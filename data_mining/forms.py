@@ -74,14 +74,18 @@ class SingleUsStateSelectForm(forms.Form):
         self.helper.form_action = ''
         self.helper.add_input(Submit('submit', 'Submit'))
 
+Z_THRESHOOLD_CHOICES = (
+    (1.5,'1.5 standard deviations'),
+    (3.0,'3 standard deviations')
+    )
 class SingleCrisisYearSelectForm(forms.Form):
     cData = Crisis.objects.values('year').filter(crisis=True).order_by('year')
-
     cYears = []
     for item in cData:
         cYears.append((str(item['year']),str(item['year'])))
-
     year = forms.ChoiceField(choices=cYears, initial=cYears[0])
+    threshold = forms.ChoiceField(choices=Z_THRESHOOLD_CHOICES,required=True, initial = 1.5)
+   
     def __init__(self, *args, **kwargs):
         super(SingleCrisisYearSelectForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper()
