@@ -4,7 +4,7 @@ from django.http import Http404
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from data.models import UnemploymentByStateMonthly, UsState, NatalityByStateYearly, MortalityByStateYearly
-from forms import ClusteringOptionsForm, SingleUsStateSelectForm
+from forms import ClusteringOptionsForm, SingleUsStateSelectForm, SingleCrisisYearSelectForm
 from visualization.forms import UsStateSelectForm
 from sklearn.cluster import KMeans, DBSCAN, AffinityPropagation, AgglomerativeClustering,MeanShift, Ward
 from sklearn.cluster.bicluster import SpectralCoclustering
@@ -21,6 +21,8 @@ from django.db.models import Avg, Max, Min, Sum
 import dbqueries
 # Statistical Association from John
 import stat_association
+# Outlier detection class from Colton
+import outlier_detection
 PLOTS_TEMP_FOLDER = 'tmp/plots/'
 def index(request):
     return render_to_response('data_mining/index.html', {}, context_instance=RequestContext(request))
@@ -178,20 +180,40 @@ def association_mortality(request):
 	data = None
 	form = SingleUsStateSelectForm()
 	title=yaxis=None
-	rules = ['a','b','c']
+	rules = None
+	stateName = None
+	type='mortality'
 	if request.method=='POST':
 		form = SingleUsStateSelectForm(request.POST)
 		if form.is_valid():
-			states = form.cleaned_data['name']
-			states_id = [ int(state.id) for state in states  ]
-			if (len(states_id)>0):
-				data = MortalityByStateYearly.objects.filter(state__id__in= states_id).values('state','year').select_related('state__name').annotate(value=Sum('crude_rate'))	
-				data = data.filter(crude_rate__isnull=False ).order_by('state','year').values('state','state__name','year','value')
-				title = "Crude Rate (yearly)"
+			state = form.cleaned_data['name']
+			uData = UnemploymentByStateMonthly.objects.filter(state=state).values('state','year').select_related('state_name').annotate(value=Avg('value')).order_by('year')
+			data = MortalityByStateYearly.objects.filter(state= state).values('state','year').select_related('state__name').annotate(value=Sum('crude_rate'))	
+			data = data.filter(crude_rate__isnull=False ).order_by('state','year').values('state','state__name','year','value')
+			list = []
+			stateName = UsState.objects.filter(id=data[0]['state'])[0].name
+			for item in uData:
+				sID = item['state']
+				y = item['year']
+				val = item['value']
+				nvals = data.filter(year=y)
+				if(len(nvals)==0):
+					continue
+				nVal = nvals[0]['value']
+				if (nVal is None):
+					continue
+				list.append((sID,y,1,val,nVal))
+			info = stat_association.stat_association(list,2500)
+			rules = info['rules']
+			data = info['values']
+			title = "Death Rate (yearly)"
+			yaxis = "Death Rate (per 100,000 people)"
 	return render_to_response('data_mining/association.html', {
 		'data': data,
-		'form':form,
 		'rules':rules,
+		'form':form,
+		'stateName':stateName,
+		'type':type,
 		'state': state,
 		'title': title,
 		'subtitle': '',
@@ -226,7 +248,7 @@ def association_natality(request):
 				if (nVal is None):
 					continue
 				list.append((sID,y,1,val,nVal))
-			info = stat_association.stat_association(list)
+			info = stat_association.stat_association(list,2)
 			rules = info['rules']
 			data = info['values']
 			title = "Birth Rate (yearly)"
@@ -242,3 +264,61 @@ def association_natality(request):
 		'subtitle': '',
 		'yaxis':yaxis
 		}, context_instance=RequestContext(request))
+
+def outliers_crisis(request):
+    state = None
+    data = None
+    crisisYears = []
+    crisisYear = None
+    form = SingleCrisisYearSelectForm()
+    title=yaxis=None
+    stateName = None
+    type='outliers'
+    if request.method=='POST':
+        form = SingleCrisisYearSelectForm(request.POST)
+        if form.is_valid():
+            crisisYear = form.cleaned_data['year']
+
+            # uData = UnemploymentByStateMonthly.objects.filter(year=crisisYear).values('state__name','value','month','state','year')
+            uData = UnemploymentByStateMonthly.objects.filter(year=crisisYear).values('state','year','state__code').annotate(value=Avg('value')).order_by('state')
+            # cDataAverages = {}
+            # cDataMonthSets = {}
+
+            # for item in uData:
+            #     if(item['state'] not in cDataMonthSets):
+            #         cDataMonthSets[item['state']] = []
+            #     cDataMonthSets[item['state']].append(item['value'])
+
+            # for state in cDataMonthSets:
+            #     cDataAverages[state] = [np.mean(cDataMonthSets[state]), state]
+
+            averages = []
+            codes = []
+
+            for item in uData:
+                averages.append(item['value'])
+                codes.append(str(item['state__code']))
+
+            outliers = outlier_detection.Outliers(averages)
+            outliers.CalculateOutliers()
+
+            data = []
+
+            for x in range(len(codes)):
+                data.append((codes[x],outliers.dataZScores[x]))
+
+            #data = {"stateCodes":codes, "zScores":outliers.dataZScores}
+
+            title = "Death Rate (yearly)"
+            yaxis = "Death Rate (per 100,000 people)"
+    return render_to_response('data_mining/outliers.html', {
+        'data': data,
+        #'rules':rules,
+        'form':form,
+        #'stateName':stateName,
+        'type':type,
+        'year': crisisYear,
+        'title': title,
+        'subtitle': '',
+        'yaxis':yaxis
+        }, context_instance=RequestContext(request))

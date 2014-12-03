@@ -53,8 +53,12 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
+    #Extra django packages
+    'django.contrib.sitemaps',
     #For ipython use manage.py shellplus
     'django_extensions',
+
     # External libraries
     'crispy_forms',
     'dajaxice', 
@@ -142,3 +146,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'django.core.context_processors.request',
     'django.contrib.messages.context_processors.messages',
 )
+
+
+# Django sites
+SITE_ID = 1

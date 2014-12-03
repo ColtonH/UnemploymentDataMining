@@ -13,11 +13,11 @@ class StatisticalAssociationRule:
 		else:
 		#	return "Unemployment "+self.label+" did not have an interesting association rule."
 			return ''
-def isInteresting(mu,stdd,n,others):
+def isInteresting(mu,stdd,n,others,delta):
 	oMu = mean(others)
 	oStd = std(others,oMu)
 	oN = len(others)
-	return z_score(mu,oMu,2,stdd,oStd,n,oN)
+	return z_score(mu,oMu,delta,stdd,oStd,n,oN)
 	
 
 def z_score(mu1, mu2, delta, std1, std2, n1, n2):
@@ -53,7 +53,7 @@ def setDiff(wholeList,removeList):
 	return [x for x in wholeList if x not in removeList]
 	
 # stateData = list[ (state_id,year,month,unemployment_value,comparison_value) ]
-def stat_association(stateData):
+def stat_association(stateData,delta):
 		lte2 = []
 		btw24 = []
 		btw46 = []
@@ -83,32 +83,32 @@ def stat_association(stateData):
 		
 		lte2mu = mean(lte2)
 		lte2std = std(lte2,lte2mu)
-		lte2interest = isInteresting(lte2mu,lte2std,len(lte2),setDiff(allValues,lte2))
+		lte2interest = isInteresting(lte2mu,lte2std,len(lte2),setDiff(allValues,lte2),delta)
 		rules.append(str(StatisticalAssociationRule("&le; 2",lte2mu,lte2std,lte2interest)))
 		
 		btw24mu = mean(btw24)
 		btw24std = std(btw24,btw24mu)
-		btw24interest = isInteresting(btw24mu,btw24std,len(btw24),setDiff(allValues,btw24))
+		btw24interest = isInteresting(btw24mu,btw24std,len(btw24),setDiff(allValues,btw24),delta)
 		rules.append(str(StatisticalAssociationRule("&gt; 2 and &le; 4",btw24mu,btw24std,btw24interest)))
 		
 		btw46mu = mean(btw46)
 		btw46std = std(btw46,btw46mu)
-		btw46interest = isInteresting(btw46mu,btw46std,len(btw46),setDiff(allValues,btw46))
+		btw46interest = isInteresting(btw46mu,btw46std,len(btw46),setDiff(allValues,btw46),delta)
 		rules.append(str(StatisticalAssociationRule("&gt; 4 and &le; 6",btw46mu,btw46std,btw46interest)))
 		
 		btw68mu = mean(btw68)
 		btw68std = std(btw68,btw68mu)
-		btw68interest = isInteresting(btw68mu,btw68std,len(btw68),setDiff(allValues,btw68))
+		btw68interest = isInteresting(btw68mu,btw68std,len(btw68),setDiff(allValues,btw68),delta)
 		rules.append(str(StatisticalAssociationRule("&gt; 6 and &le; 8",btw68mu,btw68std,btw68interest)))
 		
 		btw810mu = mean(btw810)
 		btw810std = std(btw810,btw810mu)
-		btw810interest = isInteresting(btw810mu,btw810std,len(btw810),setDiff(allValues,btw810))
+		btw810interest = isInteresting(btw810mu,btw810std,len(btw810),setDiff(allValues,btw810),delta)
 		rules.append(str(StatisticalAssociationRule("&gt; 8 and &le; 10",btw810mu,btw810std,btw810interest)))
 		
 		gt10mu = mean(gt10)
 		gt10std = std(gt10,gt10mu)
-		gt10interest = isInteresting(gt10mu,gt10std,len(gt10),setDiff(allValues,gt10))
+		gt10interest = isInteresting(gt10mu,gt10std,len(gt10),setDiff(allValues,gt10),delta)
 		rules.append(str(StatisticalAssociationRule("&gt; 10",gt10mu,gt10std,gt10interest)))
 		
 		# values = list[ (state_id,year,month,unemployment_value,comparison_mu+2*std,comparison_mu-2*std) ]

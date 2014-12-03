@@ -1,37 +1,80 @@
 {% extends "index.html" %}
 {% load crispy_forms_tags %}
 {% block content %}
+<style type="text/css">
+    .panel-heading a:after {
+    font-family:'Glyphicons Halflings';
+    content:"\e114";
+    float: right;
+    color: grey;
+    }
+    .panel-heading a.collapsed:after {
+        content:"\e080";
+    }
+</style>
+    <ol class="breadcrumb">
+      <li><a href="/">Home</a></li>
+      <li><a href="/data_mining">Data Mining</a></li>
+      <li class="active">clustering VAR</li>
+    </ol>
+
     <h1 class="text-center">Clustering</h1>
-    <div class="col-md-6 col-md-offset-3 well" style="margin-top:20px; padding-top:20px;">
-        Filtering options:
-        {% crispy form %}
+    <div class="col-md-6 col-md-offset-3" style="margin-top:20px; padding-top:20px;">
+    <div class="panel-group" id="accordion">
+        <div class="panel panel-default" id="panel1">
+            <div class="panel-heading">
+                <a data-toggle="collapse" data-target="#collapseForm" 
+                   href="#collapseForm">
+                  Filtering options
+                  </a>
+            </div>
+            <div id="collapseForm" class="panel-collapse collapse {% if not data %}in{% endif %}">
+            {% crispy form %}
+            </div>
+        </div>
     </div>
-    <div class="col-md-12 text-center well"><h2>Results:</h2></div>
-    <div class="col-md-5 col-md-offset-1 col-sm-10" id="graph_div" style="margin-top:50px; height:100%; max-height:600px"></div>
-    <div class="col-md-5 col-sm-10" id="clustering" style="margin-top:50px;"><img style="max-height:600px; height:100% " src="
-    {{clustering_img}}" alt="Clustering results"></div>
-    <div class="col-md-5 col-sm-10 col-sm-offset-1" id="coclustering" style="margin-top:50px;"><img style="max-height:600px; height:100%" src="
-    {{coclustering_img}}" alt="Clustering results"></div>
+    </div>
+    <div class="col-md-12 text-center"><h2>Results:</h2></div>
+    <div class="col-md-12">
+        <div class="col-md-4 col-sm-12" id="graph_div"></div>
+        <div class="col-md-4 col-sm-12"><img class="img-responsive" src="{{clustering_img}}" alt="Clustering results"></div>
+        <div class="col-md-4 col-sm-12"><img class="img-responsive" src="{{coclustering_img}}" alt="Clustering results"></div>
+    </div>
     {% if cluster_year_freq %}
-    <div class="col-md-5">
-        <h3 class="text-center">Cluster summary table</h3>
+    <div class="col-md-12 text-center"><h2>Cluster details:</h2></div>
+   <div role="tabpanel col-md-10 col-md-offset-1">
+        <ul class="nav nav-tabs" role="tablist">
         {% for key,cluster in cluster_year_freq.items %}
-            <h4>Cluster #{{cluster.id}} ({{cluster.color}})</h4>
-            <table class="table table-striped">
-              <tr>
-                <th>Year</td>
-                <th>Counts</td>
-              </tr>
-              {% for year in cluster.years %}
-              <tr>
-                <td>{{year.0}}</td>
-                <td>{{year.1}}</td> 
-              </tr>
-              {% endfor %}
-            </table>    
+            <li role="presentation" class="{% if forloop.counter == 1 %}active{% endif %}"><a href="#cluster{{key}}" aria-controls="home" role="tab" data-toggle="tab">Cluster{{key}}</a></li>
         {% endfor %}
+        </ul>
+        <div class="tab-content">
+        {% for key,cluster in cluster_year_freq.items %}
+            <div role="tabpanel" class="tab-pane {% if forloop.counter == 1 %}active{% endif %}" id="cluster{{key}}">
+            <h4>Cluster #{{cluster.id}} ({{cluster.color}})</h4>
+                <div class="col-md-3 col-sm-4" id=-"table-cont">
+                    <table class="table table-striped">
+                      <tr>
+                        <th>Year</td>
+                        <th>Counts</td>
+                      </tr>
+                      {% for year in cluster.years %}
+                      <tr>
+                        <td>{{year.0}}</td>
+                        <td>{{year.1}}</td> 
+                      </tr>
+                      {% endfor %}
+                    </table>  
+                </div>
+            </div>  
+        {% endfor %}
+
     </div>
+
     {% endif %}
+
+
+
 
 
 {% endblock %}
