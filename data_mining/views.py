@@ -51,7 +51,7 @@ def cluster_data(data,clustering_method,num_clusters):
         cluster_centers = [data[i] for i in  af.cluster_centers_indices_]
         labels = af.labels_
     elif clustering_method == "AgglomerativeClustering":
-        n_neighbors=max(10,len(data)/4)
+        n_neighbors=min(10,len(data)/2)
         connectivity = kneighbors_graph(data, n_neighbors=n_neighbors)
         ward = AgglomerativeClustering(n_clusters=num_clusters, connectivity=connectivity,
                                linkage='ward').fit(data)
@@ -68,7 +68,7 @@ def cluster_data(data,clustering_method,num_clusters):
     return labels,cluster_centers,labels_unique,extra
 def clustering_unemp_var(request, model,variable,form_url ):
     # Initialize all variables to None, they will be assigned if they are used
-    data = dataset = title = legend = min_val = max_val = dataset = cluster_year_freq=  None
+    data = dataset = title = legend = min_val = max_val = dataset = cluster_year_freq= cluster_year_freq2= None
     relative_file_path = relative_file_path2 = ''
     clustering_img = coclustering_img = None
     states = years = None
@@ -127,8 +127,12 @@ def clustering_unemp_var(request, model,variable,form_url ):
                     cluster_year_freq[k]={'id':k}
                     cluster_year_freq[k]['color'] = col
                     cluster_year_freq[k]['years']=zip(ii,y[ii])
-                    years2 = range(int(years[0]),int(years[len(years)-1])+1)
-                    years2 = y[int(years[0]):min(len(y),int(years[len(years)-1])+1)]
+                    if len(years)>0:
+                        years2 = range(int(years[0]),int(years[len(years)-1])+1)
+                        years2 = y[int(years[0]):min(len(y),int(years[len(years)-1])+1)]
+                    else:
+                        years2 = range(int(choices[0][0]),int(choices[len(choices)-1][0])+1)
+                        years2 = y[int(choices[0][0]):min(len(y),int(choices[len(choices)-1][0])+1)]
                     cluster_year_freq2[k]= years2.tolist()
                     if clustering_method=="DBSCAN":
                         core_samples_mask =extra
@@ -171,7 +175,8 @@ def clustering_unemp_var(request, model,variable,form_url ):
             coclustering_img = '/media/'+relative_file_path2
             plt.close()
             plt.clf()
-
+            if len(years)==0:
+                years = choices
     return render_to_response('data_mining/clustering.html', {
         'data': data,
         'form':form,
