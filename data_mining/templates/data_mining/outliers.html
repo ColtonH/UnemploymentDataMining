@@ -66,14 +66,14 @@ $(function () {
                 enabled: true
             },
 
-            colorAxis: {
+            /*colorAxis: {
                 type: 'logarithmic',
                 minColor: '#FF0000',
                 maxColor: '#00FF00',
                 {% if threshold %}min:-{{threshold}},{% endif %}
                 {% if threshold %}max:{{threshold}},{% endif %}
                 
-            },
+            },*/
 
             series : [{
                 animation: {
@@ -89,7 +89,7 @@ $(function () {
                     color: 'white',
                     format: '{point.code}'
                 },
-                name: '{{title}}',
+                name: 'Z-Score',
                 tooltip: {
                     pointFormat: '{point.code}: {point.value} {{legend}}'
                 }

@@ -9,6 +9,8 @@ from visualization.forms import UsStateSelectForm
 from sklearn.cluster import KMeans, DBSCAN, AffinityPropagation, AgglomerativeClustering,MeanShift, Ward
 from sklearn.cluster.bicluster import SpectralCoclustering
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import os
 import uuid
@@ -64,10 +66,11 @@ def cluster_data(data,clustering_method,num_clusters):
     if labels is not None:
         labels_unique = np.unique(labels)
     return labels,cluster_centers,labels_unique,extra
-def clustering_unemp_var_raw(request, model,variable ):
+def clustering_unemp_var(request, model,variable,form_url ):
     # Initialize all variables to None, they will be assigned if they are used
     data = dataset = title = legend = min_val = max_val = dataset = cluster_year_freq=  None
     relative_file_path = relative_file_path2 = ''
+    clustering_img = coclustering_img = None
     states = years = None
     normalize_data=True
     clustering_method = 'KMeans'
@@ -78,10 +81,10 @@ def clustering_unemp_var_raw(request, model,variable ):
     # Get all possible years
     choices,min_year,max_year = dbqueries.getAvailableYearChoices(model,variable)
     # Initialize form, if method is post this will be overwritten
-    form = ClusteringOptionsForm(year_choices=choices)
+    form = ClusteringOptionsForm(year_choices=choices, form_url=form_url)
     # Check wether user posted the formulary
     if request.method=='POST':
-        form = ClusteringOptionsForm(request.POST, year_choices=choices)
+        form = ClusteringOptionsForm(request.POST, year_choices=choices, form_url=form_url)
         if form.is_valid():
             states = form.cleaned_data['states']
             years = form.cleaned_data['years']
@@ -94,8 +97,9 @@ def clustering_unemp_var_raw(request, model,variable ):
             unemployment_difference = form.cleaned_data['unemployment_difference']
             variable_difference = form.cleaned_data['variable_difference']
             num_clusters = form.cleaned_data['number_of_clusters']
-            clustering_method =form.cleaned_data['clustering_algorithm'] 
+            clustering_method = form.cleaned_data['clustering_algorithm'] 
             # Get data
+
             data = dbqueries.get_unemp_vs_var_from_database_paired(model,variable,min_year,max_year,states,years,normalize_data,unemployment_difference,variable_difference)
             # Adapt data for clustering algorithms as a numbpy array of 2D
             prepared_data = np.array([[float(row['unemployment']),float(row['variable'])] for row in data])  
@@ -107,6 +111,7 @@ def clustering_unemp_var_raw(request, model,variable ):
             
             # Count all frequency of years for each cluster
             cluster_year_freq = {}
+            cluster_year_freq2 = {}
             num_clusters = sum(labels_unique!=-1)
             for k,col in zip(range(num_clusters),colors):
                 my_members = labels == k
@@ -122,6 +127,9 @@ def clustering_unemp_var_raw(request, model,variable ):
                     cluster_year_freq[k]={'id':k}
                     cluster_year_freq[k]['color'] = col
                     cluster_year_freq[k]['years']=zip(ii,y[ii])
+                    years2 = range(int(years[0]),int(years[len(years)-1])+1)
+                    years2 = y[int(years[0]):min(len(y),int(years[len(years)-1])+1)]
+                    cluster_year_freq2[k]= years2.tolist()
                     if clustering_method=="DBSCAN":
                         core_samples_mask =extra
                         xy = prepared_data[my_members & core_samples_mask]
@@ -141,22 +149,28 @@ def clustering_unemp_var_raw(request, model,variable ):
                                     plt.plot([cluster_center[0], x[0]], [cluster_center[1], x[1]], col)
 
             # plt.title('Estimated number of clusters: %d' % n_clusters_)
+
             relative_file_path =os.path.join( PLOTS_TEMP_FOLDER,str(uuid.uuid4())+'.png')
             path = os.path.join(settings.MEDIA_ROOT,relative_file_path)
             plt.tight_layout()
             plt.savefig(path)
             plt.close()
+            plt.clf()
+            clustering_img = '/media/'+relative_file_path
 
             dist_out = pairwise_distances(prepared_data, metric="euclidean")
             dist_out = dist_out[np.argsort(labels)]
             plt.matshow(dist_out, cmap=plt.cm.autumn)
             plt.title('Similarity Matrix (euclidian dist.) reordered by cluster')
             relative_file_path2 =os.path.join( PLOTS_TEMP_FOLDER,str(uuid.uuid4())+'.png')
+            dist_out = None
+            prepared_data=None
             path = os.path.join(settings.MEDIA_ROOT,relative_file_path2)
             plt.savefig(path)
-            plt.close()
-
             
+            coclustering_img = '/media/'+relative_file_path2
+            plt.close()
+            plt.clf()
 
     return render_to_response('data_mining/clustering.html', {
         'data': data,
@@ -168,10 +182,11 @@ def clustering_unemp_var_raw(request, model,variable ):
         'max_val':max_val,
         'dataset':dataset,
         'variable':variable,
-        'clustering_img':'/media/'+relative_file_path,
-        'coclustering_img':'/media/'+relative_file_path2,
-        'cluster_year_freq':cluster_year_freq
-        
+        'clustering_img':clustering_img,
+        'coclustering_img':coclustering_img,
+        'cluster_year_freq':cluster_year_freq,
+        'cluster_year_freq2':cluster_year_freq2,
+        'years':years,
         }, context_instance=RequestContext(request))
 		
 		
@@ -310,8 +325,8 @@ def outliers_crisis(request):
 
             #data = {"stateCodes":codes, "zScores":outliers.dataZScores}
 
-            title = "Death Rate (yearly)"
-            yaxis = "Death Rate (per 100,000 people)"
+            title = "Outliers"
+            #yaxis = "Death Rate (per 100,000 people)"
     return render_to_response('data_mining/outliers.html', {
         'data': data,
         #'rules':rules,
@@ -321,6 +336,6 @@ def outliers_crisis(request):
         'year': crisisYear,
         'title': title,
         'subtitle': '',
-        'yaxis':yaxis,
+        #'yaxis':yaxis,
         'threshold':threshold,
         }, context_instance=RequestContext(request))

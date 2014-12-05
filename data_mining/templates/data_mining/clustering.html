@@ -15,7 +15,7 @@
     <ol class="breadcrumb">
       <li><a href="/">Home</a></li>
       <li><a href="/data_mining">Data Mining</a></li>
-      <li class="active">clustering VAR</li>
+      <li class="active">clustering {{variable}}</li>
     </ol>
 
     <h1 class="text-center">Clustering</h1>
@@ -34,23 +34,28 @@
         </div>
     </div>
     </div>
-    <div class="col-md-12 text-center"><h2>Results:</h2></div>
+    <div class="col-md-12 text-center"><h2>Results: <small>(Static images will be available for 5 minutes)</small></h2></div>
     <div class="col-md-12">
         <div class="col-md-4 col-sm-12" id="graph_div"></div>
-        <div class="col-md-4 col-sm-12"><img class="img-responsive" src="{{clustering_img}}" alt="Clustering results"></div>
-        <div class="col-md-4 col-sm-12"><img class="img-responsive" src="{{coclustering_img}}" alt="Clustering results"></div>
+        
+        {% if clustering_img %}<div class="col-md-4 col-sm-12"><img class="img-responsive" src="{{clustering_img}}" alt="Clustering results"></div>{% endif %}
+        {% if coclustering_img %}<div class="col-md-4 col-sm-12"><img class="img-responsive" src="{{coclustering_img}}" alt="Clustering results"></div>{% endif %}
     </div>
     {% if cluster_year_freq %}
     <div class="col-md-12 text-center"><h2>Cluster details:</h2></div>
    <div role="tabpanel col-md-10 col-md-offset-1">
         <ul class="nav nav-tabs" role="tablist">
+            <li role="presentation" class="active"><a href="#summary" aria-controls="home" role="tab" data-toggle="tab">Summary</a></li>
         {% for key,cluster in cluster_year_freq.items %}
-            <li role="presentation" class="{% if forloop.counter == 1 %}active{% endif %}"><a href="#cluster{{key}}" aria-controls="home" role="tab" data-toggle="tab">Cluster{{key}}</a></li>
+            <li role="presentation" class=""><a href="#cluster{{key}}" aria-controls="home" role="tab" data-toggle="tab">Cluster{{key}}</a></li>
         {% endfor %}
         </ul>
         <div class="tab-content">
+            <div role="tabpanel" class="tab-pane active" id="summary">
+                <div id="cluster_summary_graph"></div>
+            </div>
         {% for key,cluster in cluster_year_freq.items %}
-            <div role="tabpanel" class="tab-pane {% if forloop.counter == 1 %}active{% endif %}" id="cluster{{key}}">
+            <div role="tabpanel" class="tab-pane" id="cluster{{key}}">
             <h4>Cluster #{{cluster.id}} ({{cluster.color}})</h4>
                 <div class="col-md-3 col-sm-4" id=-"table-cont">
                     <table class="table table-striped">
@@ -165,6 +170,52 @@ $(function () {
         {% endif %}
     });
 });
-
+$(function () {
+    var years=[
+         {% for year in years %}
+            {{year}},
+         {% endfor%}
+    ]
+    var clusterData=[
+    {% for cluster,years_cluster in cluster_year_freq2.items %}
+        {name:"Cluster {{cluster}}",
+         data:[
+        {% for value in years_cluster%}
+            {{value}},
+        {% endfor %}
+        ]},
+    {%endfor%}
+    ]
+    $('#cluster_summary_graph').highcharts({
+        chart: {
+            type: 'bar'
+        },
+        title: {
+            text: 'Stacked year in cluster'
+        },
+        xAxis: {
+            categories: years
+        },
+        yAxis: {
+            min: 0,
+            title: {
+                text: 'Total fruit consumption'
+            }
+        },
+        legend: {
+            reversed: true
+        },
+        plotOptions: {
+            series: {
+                stacking: 'normal'
+            }
+        },
+        series: clusterData
+    });
+    // var generateBarChart(id,data){
+    //     var container = ('#'+id);
+    //     container.highcharts
+    // }
+});
    </script>
 {% endblock %}
